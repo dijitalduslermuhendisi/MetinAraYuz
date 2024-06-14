@@ -1,0 +1,75 @@
+#include<Wire.h>
+#include<LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+String text = "";
+int speed = 500;
+String animation = "none";
+int length;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+  Serial.println("Arduino Ready");
+}
+
+void loop() {
+ if(Serial.available() > 0){
+   String received = Serial.readStringUntil('\n');
+   Serial.print("Received: "); Serial.println(received);
+
+   if(received.startsWith("TEXT=")){
+     text = received.substring(5);
+     Serial.print("Text set to: "); Serial.println(text);
+     
+    } else if(received.startsWith("ANIMATION=")){
+      animation = received.substring(10);
+      Serial.print("Animation set to: "); Serial.println(animation);
+      
+    } else if (received.startsWith("SPEED")){
+       speed = received.substring(6).toInt();
+       Serial.print("Speed set to: "); Serial.println(speed);
+      
+    } else if (received == "DISPLAY"){
+       displayText();
+      } 
+  }
+}
+
+
+void displayText(){
+   length = text.length();
+   if (animation == "scroll_left"){
+     for (int i = 0; i< length + 16; i++) {
+       lcd.clear();
+       lcd.setCursor(i < 16 ? 16-i : 0, 0);
+       lcd.print(text.substring(max(0, i - 16), i));
+       delay(speed);
+       
+      }
+     
+    }else if (animation == "scroll_right"){
+       for (int i = 0; i < length + 16; i++){
+         lcd.clear();
+         lcd.setCursor(i < 16 ? 0 : 16 - (i - 16), 0);
+         lcd.print(text.substring(max(0, i - 16), i));
+         delay(speed);
+        }
+      } else {
+         lcd.clear();
+         lcd.setCursor(0, 0);
+         lcd.print(text);
+         
+        }
+  }
+
+void setSpeed(int s){
+   speed = s;
+   
+  }
+
+void setAnimation (String anim){
+   animation = anim;
+  }
