@@ -1,0 +1,48 @@
+import customtkinter as ctk
+import serial
+import time
+
+# Serial setup
+ser = serial.Serial('COM5', 9600, timeout=1)
+time.sleep(2)
+
+def send_to_arduino(text, animation, speed):
+    ser.write(f"TEXT={text}\n".encode())
+    ser.write(f"ANIMATION={animation}\n".encode())
+    ser.write(f"SPEED={speed}\n".encode())
+    ser.write("DISPLAY\n".encode())
+
+def on_submit():
+    text = entry.get()
+    animation = animation_var.get()
+    speed = int(speed_slider.get())
+    print(f"Sending: text='{text}', animation='{animation}', speed={speed}")
+    send_to_arduino(text, animation, speed)
+
+# GUI setup
+root = ctk.CTk()
+root.title("LCD Text Display")
+
+# Entry for text
+entry = ctk.CTkEntry(root, width=300)
+entry.pack(pady=10)
+
+# Animation options
+animation_var = ctk.StringVar(value="none")
+animation_frame = ctk.CTkFrame(root)
+animation_frame.pack(pady=10)
+animations = [("None", "none"), ("Scroll Left", "scroll_left"), ("Scroll Right", "scroll_right")]
+for text, mode in animations:
+    b = ctk.CTkRadioButton(animation_frame, text=text, variable=animation_var, value=mode)
+    b.pack(side="left")
+
+# Speed slider
+speed_slider = ctk.CTkSlider(root, from_=100, to=1000, width=300)
+speed_slider.set(500)
+speed_slider.pack(pady=10)
+
+# Submit button
+submit_button = ctk.CTkButton(root, text="Submit", command=on_submit)
+submit_button.pack(pady=10)
+
+root.mainloop()
